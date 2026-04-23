@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { Logger } from '../utils';
 import { z } from 'zod';
+import { Logger } from '../shared';
 
 // Esquema de validación para las variables de entorno
 const envSchema = z.object({

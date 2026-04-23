@@ -1,13 +1,20 @@
 import { Router } from "express";
 
-import { AuthController } from "./auth.controller";
-import { AuthService } from "./auth.service";
-import { validate } from "../../middlewares";
-import { registerSchema } from "./schemas/register.schema";
+import { AuthController } from "../controllers/auth.controller";
+import { LoginUseCase } from "../../application/use-cases/login.use-case";
+import { PrismaUserRepository } from "../adapters/prisma-user.repository";
+import { CreateUserUseCase } from "../../application/use-cases/create-user.use-case";
+import { registerSchema } from "../schemas/register.schema";
+import { validate } from "../../../shared";
+import { loginSchema } from "../schemas/login.schema";
+
 
 const authRouter = Router();
-const authService = new AuthService();
-const authController = new AuthController(authService);
+
+const userRepository = new PrismaUserRepository();
+const loginUserUseCase = new LoginUseCase(userRepository)
+const createUserUseCase = new CreateUserUseCase(userRepository);
+const authController = new AuthController(createUserUseCase, loginUserUseCase);
 
 
 /**
@@ -80,7 +87,7 @@ authRouter.post("/register", validate(registerSchema), authController.createUser
  *       500:
  *         description: Internal server error
  */
-authRouter.post("/login", authController.login);
+authRouter.post("/login", validate(loginSchema), authController.login);
 
 
 export default authRouter;

@@ -30,6 +30,7 @@ export const validate = (schema: ZodType): RequestHandler => {
         }
 
         req.body = result.data;
+        
         next();
     };
 };

@@ -1,11 +1,11 @@
 import express, { Application, Router } from 'express';
 import { envs, scalarOptions } from './config';
 import 'dotenv/config';
-import { Logger } from './utils';
-import appRouter from './routes';
+import { Logger } from './shared/utils';
+import appRouter from './shared/routes';
 import morgan from 'morgan';
 import { apiReference } from '@scalar/express-api-reference';
-import { errorHandler } from './middlewares';
+import { errorHandler } from './shared';
 
 class Server {
 
