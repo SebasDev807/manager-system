@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+enum UserRole {
+  admin
+  user
+}
+
+enum ClientStatus {
+  active
+  inactive
+}
+
+enum ProjectStatus {
+  pending
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  done
+}
+
+enum PaymentStatus {
+  paid
+  pending
+}
+
+enum ProjectRole {
+  owner
+  member
+}
+
+// ------------------------------------------------------
+// MODELS
+// ------------------------------------------------------
+
+model User {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar
+  // Nota: Almacenar en minúsculas (manejar en la lógica de la app)
+  email     String    @unique @db.VarChar
+  // Nota: bcrypt hash
+  password  String    @db.VarChar
+  role      UserRole  @default(user)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relaciones
+  clients         Client[]
+  createdProjects Project[]       @relation("ProjectCreator")
+  projectMembers  ProjectMember[]
+  assignedTasks   Task[]          @relation("TaskAssignee")
+
+  @@map("users")
+}
+
+model Client {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  name      String       @db.VarChar
+  email     String?      @db.VarChar
+  company   String?      @db.VarChar
+  status    ClientStatus @default(active)
+
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  deletedAt DateTime?    @map("deleted_at")
+
+  // Relaciones
+  user      User         @relation(fields: [userId], references: [id])
+  projects  Project[]
+
+  @@index([userId])
+  @@map("clients")
+}
+
+model Project {
+  id          String        @id @default(uuid()) @db.Uuid
+  clientId    String        @map("client_id") @db.Uuid
+  createdBy   String        @map("created_by") @db.Uuid
+  name        String        @db.VarChar
+  description String?       @db.Text
+  status      ProjectStatus @default(pending)
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  // Relaciones
+  client      Client          @relation(fields: [clientId], references: [id])
+  creator     User            @relation("ProjectCreator", fields: [createdBy], references: [id])
+  members     ProjectMember[]
+  tasks       Task[]
+  payments    Payment[]
+
+  @@index([clientId])
+  @@index([createdBy])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  projectId String      @map("project_id") @db.Uuid
+  role      ProjectRole @default(member)
+
+  // Relaciones
+  user      User        @relation(fields: [userId], references: [id])
+  project   Project     @relation(fields: [projectId], references: [id])
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("project_members")
+}
+
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  projectId   String     @map("project_id") @db.Uuid
+  assignedTo  String?    @map("assigned_to") @db.Uuid
+  title       String     @db.VarChar
+  description String?    @db.Text
+  priority    Priority   @default(medium)
+  status      TaskStatus @default(pending)
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  // Relaciones
+  project     Project    @relation(fields: [projectId], references: [id])
+  assignee    User?      @relation("TaskAssignee", fields: [assignedTo], references: [id])
+
+  @@index([projectId])
+  @@index([assignedTo])
+  @@map("tasks")
+}
+
+model Payment {
+  id          String        @id @default(uuid()) @db.Uuid
+  projectId   String        @map("project_id") @db.Uuid
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("COP") @db.VarChar
+  paymentDate DateTime      @map("payment_date") @db.Date
+  status      PaymentStatus @default(pending)
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  // Relaciones
+  project     Project       @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+  @@map("payments")
+}
