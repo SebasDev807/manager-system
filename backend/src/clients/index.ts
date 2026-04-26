@@ -1,0 +1,1 @@
+export { default as clientRouter } from './infrastructure/routes/client.routes';  

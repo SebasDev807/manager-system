@@ -6,7 +6,9 @@ import { PrismaUserRepository } from "../adapters/prisma-user.repository";
 import { CreateUserUseCase } from "../../application/use-cases/create-user.use-case";
 import { registerSchema } from "../schemas/register.schema";
 import { validate } from "../../../shared";
-import { loginSchema } from "../schemas/login.schema";
+import { loginUserSchema } from "../schemas/login.schema";
+
+
 
 
 const authRouter = Router();
@@ -73,10 +75,14 @@ authRouter.post("/register", validate(registerSchema), authController.createUser
  *             type: object
  *             required:
  *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
- *                 example: jhondoe@gmail.com
+ *                 example: johndoe@example.com
+ *               password:
+ *                  type: string
+ *                  example: $Ecret123
  *     responses:
  *       200:
  *         description: Login Success
@@ -87,7 +93,7 @@ authRouter.post("/register", validate(registerSchema), authController.createUser
  *       500:
  *         description: Internal server error
  */
-authRouter.post("/login", validate(loginSchema), authController.login);
+authRouter.post("/login", validate(loginUserSchema), authController.login);
 
 
 export default authRouter;

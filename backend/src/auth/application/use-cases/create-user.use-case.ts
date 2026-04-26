@@ -5,7 +5,7 @@ import { ConflictException } from "../../../shared";
 
 export class CreateUserUseCase {
 
-    constructor(private userRepository: IUserRepository) { }
+    constructor(private readonly userRepository: IUserRepository) { }
 
     async execute(createUserDto: CreateUserDto) {
         const { email, name } = createUserDto;
@@ -16,7 +16,11 @@ export class CreateUserUseCase {
             throw new ConflictException("User already exists");
         }
 
-        await this.userRepository.createUser(name, email, hashSync(createUserDto.password, 10));
+        await this.userRepository.createUser({
+            name,
+            email,
+            password: hashSync(createUserDto.password, 10)
+        });
 
         const secureUser = {
             email,

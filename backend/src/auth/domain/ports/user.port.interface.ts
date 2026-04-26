@@ -5,8 +5,8 @@ export interface User {
     email: string;
     password: string;
     createdAt: Date;
-    updatedAt: Date;
-    deletedAt: Date | null;
+    updatedAt?: Date;
+    deletedAt?: Date | null;
     role: UserRole;
     name: string;
 }
